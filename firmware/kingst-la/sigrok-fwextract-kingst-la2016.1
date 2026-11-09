@@ -1,4 +1,4 @@
-.TH SIGROK\-FWEXTRACT\-KINGST\-LA2016 1 "Sep 1, 2026"
+.TH SIGROK\-FWEXTRACT\-KINGST\-LA2016 1 "Nov 9, 2026"
 .SH "NAME"
 sigrok\-fwextract\-kingst\-la2016 \- Extract Kingst firmware from vendor software
 .SH "SYNOPSIS"
@@ -16,22 +16,38 @@ the same firmware and bitstreams, so any of them can be used as the
 source. To extract the firmware and bitstreams, run the following
 commands:
 .PP
-.B "  $ tar -xzf KingstVIS_v3.5.0_linux.tar.gz KingstVIS"
+.B "  $ tar -xzf KingstVIS_v3.6.6.tar.gz KingstVIS"
 .PP
 On macOS the binary lives inside the application bundle, at
 .BR KingstVIS.app/Contents/MacOS/KingstVIS .
 .PP
 .B "  $ sigrok-fwextract-kingst-la2016 KingstVIS/KingstVIS"
-.br
-.RB "  saved 5430 bytes to kingst-la-01a2.fw (crc32=720551a9)"
-.br
-.RB "  saved 178362 bytes to kingst-la2016a1-fpga.bitstream (crc32=7cc894fa)"
-.br
-.RB "  saved 178542 bytes to kingst-la2016-fpga.bitstream (crc32=20694ff1)"
-.br
-.RB "  saved 178379 bytes to kingst-la1016a1-fpga.bitstream (crc32=166866be)"
-.br
-.RB "  saved 178151 bytes to kingst-la1016-fpga.bitstream (crc32=7db70001)"
+.nf
+.RS
+resource fwusb/fw01A1, file kingst-la-01a1.fw, size 5350, checksum 800fff37
+resource fwusb/fw01A2, file kingst-la-01a2.fw, size 5430, checksum 720551a9
+resource fwusb/fw01A3, file kingst-la-01a3.fw, size 5697, checksum 1c4f4184
+resource fwusb/fw01A4, file kingst-la-01a4.fw, size 142412, checksum 066af8de
+resource fwusb/fw03A1, file kingst-la-03a1.fw, size 5459, checksum 797a67ea
+resource fwfpga/LA1010A0, file kingst-la1010a0-fpga.bitstream, size 124412, checksum a655cdd2
+resource fwfpga/LA1010A1, file kingst-la1010a1-fpga.bitstream, size 125301, checksum 2333d203
+resource fwfpga/LA1010A2, file kingst-la1010a2-fpga.bitstream, size 342524, checksum d2cf8e9e
+resource fwfpga/LA1016, file kingst-la1016-fpga.bitstream, size 178151, checksum 7db70001
+resource fwfpga/LA1016A1, file kingst-la1016a1-fpga.bitstream, size 178379, checksum 166866be
+resource fwfpga/LA2016, file kingst-la2016-fpga.bitstream, size 178542, checksum 20694ff1
+resource fwfpga/LA2016A1, file kingst-la2016a1-fpga.bitstream, size 178362, checksum 7cc894fa
+resource fwfpga/LA2016A2, file kingst-la2016a2-fpga.bitstream, size 577892, checksum f7377457
+resource fwfpga/LA5016, file kingst-la5016-fpga.bitstream, size 181322, checksum c0799f49
+resource fwfpga/LA5016A1, file kingst-la5016a1-fpga.bitstream, size 247485, checksum d8adbcff
+resource fwfpga/LA5016A2, file kingst-la5016a2-fpga.bitstream, size 593076, checksum 3a555fcd
+resource fwfpga/LA5032A0, file kingst-la5032a0-fpga.bitstream, size 451116, checksum 6e32f945
+resource fwfpga/MS6218, file kingst-ms6218-fpga.bitstream, size 127244, checksum 64079d0e
+.RE
+.fi
+.PP
+The Linux, macOS (.dmg) and stripped builds of v3.6.6 give identical
+files. Earlier versions embed fewer of them; the four LA1016 and LA2016
+bitstreams and kingst-la-01a2.fw are the same since v3.5.0.
 .PP
 Copy the above firmware and bitstream files to the location where libsigrok
 expects to find firmware files. By default this is
@@ -67,5 +83,7 @@ Please see the individual source code files.
 Vendor website
 .RS 4
 .RB http://www.qdkingst.com/download
+.br
+\%MD5 of v3.6.6 for Linux (KingstVIS_v3.6.6.tar.gz): 5e9b365e651d1473a9979b48ba8a994d
 .br
 \%MD5 of v3.5.0: 812bbd37a16d315a489ca33ea2868a36
