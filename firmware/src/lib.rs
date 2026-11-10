@@ -32,7 +32,7 @@ mod registry;
 mod download;
 
 pub use error::{Error, Result};
-pub use input::Input;
+pub use input::{Input, unpacker};
 pub use install::{
     Installed, Options, Progress, default_cache_dir, default_install_dir, fetch, import,
 };

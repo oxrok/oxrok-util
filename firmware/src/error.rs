@@ -2,7 +2,11 @@
 
 /// What can go wrong while fetching or extracting firmware.
 #[derive(Debug, thiserror::Error)]
+#[non_exhaustive]
 pub enum Error {
+    /// [`crate::Progress::cancelled`] said to stop.
+    #[error("cancelled")]
+    Cancelled,
     /// An I/O error.
     #[error("{0}")]
     Io(#[from] std::io::Error),
