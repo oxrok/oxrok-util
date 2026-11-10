@@ -285,6 +285,18 @@ pub fn unpacker() -> Option<PathBuf> {
     UNPACKERS.iter().find_map(|t| which(t))
 }
 
+/// Whether opening `path` (a file the user picked to import) needs an
+/// external [`unpacker`]: a RAR, 7z, ISO, CAB or MSI, told by its
+/// contents. Executables answer `false`: most installers are searched
+/// without one. [`crate::import`] fails with [`Error::NeedTool`] either
+/// way when one is needed and missing.
+pub fn file_needs_unpacker(path: &Path) -> bool {
+    matches!(
+        Kind::sniff(path),
+        Some(Kind::Rar | Kind::SevenZip | Kind::Iso | Kind::Cab | Kind::Ole)
+    )
+}
+
 /// Unpacks with the first archiver found on `PATH`.
 fn unpack_with_tool(file: &Path, dir: &Path) -> Result<()> {
     type Args = fn(&Path, &Path) -> Vec<std::ffi::OsString>;
@@ -383,6 +395,23 @@ mod tests {
         let mut input = Input::new([dir.path().to_owned()]);
         let e = input.read_named("top.bit").unwrap_err();
         assert!(matches!(e, Error::NotFound(ref n) if n == "top.bit"), "{e}");
+    }
+
+    #[test]
+    fn tells_which_picked_files_need_an_unpacker() {
+        let dir = tempfile::tempdir().unwrap();
+        let file = |name: &str, data: &[u8]| {
+            let p = dir.path().join(name);
+            std::fs::write(&p, data).unwrap();
+            p
+        };
+        assert!(file_needs_unpacker(&file("a.rar", b"Rar!\x1a\x07\x01\x00")));
+        let mut iso = vec![0u8; 0x8006];
+        iso[0x8001..0x8006].copy_from_slice(b"CD001");
+        assert!(file_needs_unpacker(&file("cd", &iso)));
+        assert!(!file_needs_unpacker(&file("a.zip", b"PK\x03\x04rest")));
+        assert!(!file_needs_unpacker(&file("setup.exe", b"MZ\x90\x00")));
+        assert!(!file_needs_unpacker(&dir.path().join("absent")));
     }
 
     #[test]
