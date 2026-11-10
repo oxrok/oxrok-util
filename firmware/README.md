@@ -50,7 +50,8 @@ A graphical front end does the same on a worker thread: look the missing
 file up with `package_for`, show the package's `title`, `files`,
 `download_size()` and `hosts()` in a confirmation (or its `manual`
 instructions, and a file picker for `import`), warn when
-`needs_unpacker()` and `unpacker()` finds none, and run `fetch` or
+`needs_unpacker()` (or, for a picked file, `file_needs_unpacker()`) and
+`unpacker()` finds none, and run `fetch` or
 `import` with a `Progress` that forwards messages and byte counts to the
 UI and answers `cancelled()` from its Cancel button. A cancelled fetch
 installs nothing.
