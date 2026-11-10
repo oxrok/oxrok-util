@@ -1,7 +1,7 @@
 [package]
 name = "oxrok-firmware-fetch"
 description = "Fetches the vendor firmware oxrok's drivers need: downloads it, or takes the user's copy, and extracts it on the user's machine"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2024"
 rust-version = "1.95"
 license = "GPL-3.0-or-later"

@@ -107,6 +107,27 @@ impl Package {
         self.downloads.iter().map(|d| d.size).sum()
     }
 
+    /// The hosts its downloads come from (the first URL of each), for
+    /// telling the user where a download goes.
+    pub fn hosts(&self) -> Vec<&'static str> {
+        let mut hosts: Vec<&'static str> = Vec::new();
+        for host in self.downloads.iter().filter_map(|d| d.urls.first()?.split('/').nth(2)) {
+            if !hosts.contains(&host) {
+                hosts.push(host);
+            }
+        }
+        hosts
+    }
+
+    /// Whether its downloads need an external [`crate::unpacker`]: a
+    /// RAR, 7z or ISO no Rust code here reads.
+    pub fn needs_unpacker(&self) -> bool {
+        self.downloads.iter().any(|d| {
+            let n = d.name.to_ascii_lowercase();
+            [".rar", ".7z", ".iso"].iter().any(|e| n.ends_with(e))
+        })
+    }
+
     pub(crate) fn known_digest(&self, file: &str) -> Option<Digest> {
         self.known.iter().find(|(f, _)| *f == file).map(|(_, d)| *d)
     }
@@ -536,3 +557,22 @@ static PACKAGES: &[Package] = &[
         known: &[],
     },
 ];
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn hosts_and_unpackers() {
+        let kingst = package("kingst-la").unwrap();
+        // The first URL of each download: the mirror is not shown.
+        assert_eq!(kingst.hosts(), vec!["res.kingst.site"]);
+        assert!(!kingst.needs_unpacker());
+        assert!(package("hantek-dso-5200a").unwrap().needs_unpacker());
+        assert_eq!(
+            package("dreamsourcelab-dslogic").unwrap().hosts(),
+            vec!["raw.githubusercontent.com"]
+        );
+        assert_eq!(package("lecroy-logicstudio").unwrap().hosts(), Vec::<&str>::new());
+    }
+}

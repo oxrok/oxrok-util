@@ -274,10 +274,21 @@ fn unpack(kind: Kind, file: &Path, dir: &Path) -> Result<()> {
     }
 }
 
+/// The archivers RAR, 7z, ISO, CAB, MSI and installers need, in the
+/// order they are tried.
+const UNPACKERS: [&str; 5] = ["unar", "7zz", "7z", "7za", "bsdtar"];
+
+/// The external unpacker [`Input`] would use, if one is installed: a
+/// front end can warn before fetching a package that
+/// [needs one](crate::Package::needs_unpacker).
+pub fn unpacker() -> Option<PathBuf> {
+    UNPACKERS.iter().find_map(|t| which(t))
+}
+
 /// Unpacks with the first archiver found on `PATH`.
 fn unpack_with_tool(file: &Path, dir: &Path) -> Result<()> {
     type Args = fn(&Path, &Path) -> Vec<std::ffi::OsString>;
-    let tools: [(&str, Args); 5] = [
+    let tools: [(&str, Args); UNPACKERS.len()] = [
         ("unar", |f, d| vec!["-q".into(), "-f".into(), "-o".into(), d.into(), f.into()]),
         ("7zz", seven_zip_args),
         ("7z", seven_zip_args),

@@ -47,6 +47,7 @@ pub(crate) fn get(d: &Download, cache: &Path, progress: &dyn Progress) -> Result
                 crate::install::write_atomic(&path, &data)?;
                 return Ok(path);
             }
+            Err(Error::Cancelled) => return Err(Error::Cancelled),
             Err(e) => {
                 log::warn!("{e}");
                 last = Some(e);
@@ -106,6 +107,7 @@ fn fetch_url(
     let mut data: Vec<u8> = Vec::with_capacity(usize::try_from(d.size).unwrap_or(0));
     let mut err = String::new();
     for attempt in 0..ATTEMPTS {
+        crate::install::check(progress)?;
         if attempt > 0 {
             log::info!("Retrying {url} at byte {} ({err}).", data.len());
             std::thread::sleep(Duration::from_secs(2 * attempt as u64));
@@ -133,6 +135,7 @@ fn fetch_url(
             match reader.read(&mut buf) {
                 Ok(0) => break,
                 Ok(n) => {
+                    crate::install::check(progress)?;
                     data.extend_from_slice(&buf[..n]);
                     progress.download(d.name, data.len() as u64, d.size);
                     if data.len() as u64 > limit {

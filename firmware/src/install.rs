@@ -6,12 +6,27 @@ use crate::input::Input;
 use crate::registry::{Digest, Package};
 use std::path::{Path, PathBuf};
 
-/// Hears how a fetch goes, for a progress bar or a log.
+/// Hears how a fetch goes, for a progress bar or a log, and can stop it.
+///
+/// [`fetch`] and [`import`] block; a front end runs them on a worker
+/// thread with a `Progress` that forwards to its UI, and answers
+/// [`Progress::cancelled`] from a flag its Cancel button sets.
 pub trait Progress {
     /// A step: "Downloading …", "Extracting …".
     fn message(&self, _msg: &str) {}
     /// Bytes of a download so far, and its size.
     fn download(&self, _name: &str, _done: u64, _total: u64) {}
+    /// Whether to stop: asked between steps and during downloads. A
+    /// stopped fetch fails with [`Error::Cancelled`] and installs
+    /// nothing.
+    fn cancelled(&self) -> bool {
+        false
+    }
+}
+
+/// Fails with [`Error::Cancelled`] if `progress` says to stop.
+pub(crate) fn check(progress: &dyn Progress) -> Result<()> {
+    if progress.cancelled() { Err(Error::Cancelled) } else { Ok(()) }
 }
 
 impl Progress for () {}
@@ -83,6 +98,7 @@ pub fn fetch(pkg: &Package, dest: &Path, opts: &Options<'_>) -> Result<Installed
     {
         let mut paths = Vec::new();
         for d in pkg.downloads {
+            check(opts.progress)?;
             paths.push(crate::download::get(d, &opts.cache_dir, opts.progress)?);
         }
         run(pkg, Input::new(paths), dest, opts.progress, true)
@@ -122,6 +138,7 @@ fn run(
     progress: &dyn Progress,
     pinned: bool,
 ) -> Result<Installed> {
+    check(progress)?;
     progress.message(&format!("Extracting {}", pkg.title));
     let mut out = Extracted::default();
     // The firmware files themselves, e.g. a sigrok-firmware folder.
@@ -169,6 +186,8 @@ fn run(
         installed.warnings.push(format!("not found in what was given: {}", missing.join(", ")));
     }
 
+    // The last chance to stop: past here everything is installed.
+    check(progress)?;
     std::fs::create_dir_all(dest)?;
     for (name, data) in out.files {
         let path = dest.join(&name);
@@ -216,4 +235,57 @@ pub(crate) fn hex(bytes: &[u8]) -> String {
         let _ = write!(s, "{b:02x}");
         s
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::cell::Cell;
+
+    /// Cancels at the n-th question.
+    struct CancelAt(Cell<u32>);
+
+    impl Progress for CancelAt {
+        fn cancelled(&self) -> bool {
+            let n = self.0.get();
+            self.0.set(n.saturating_sub(1));
+            n == 0
+        }
+    }
+
+    /// `fx2lafw-git` installs its files as given, with no extractor.
+    fn given() -> (tempfile::TempDir, Vec<PathBuf>) {
+        let dir = tempfile::tempdir().unwrap();
+        for f in crate::package("fx2lafw-git").unwrap().files {
+            std::fs::write(dir.path().join(f), b"fw").unwrap();
+        }
+        let paths = vec![dir.path().to_owned()];
+        (dir, paths)
+    }
+
+    #[test]
+    fn a_cancelled_import_installs_nothing() {
+        let pkg = crate::package("fx2lafw-git").unwrap();
+        let (_src, paths) = given();
+        for at in 0..2 {
+            let dest = tempfile::tempdir().unwrap();
+            let e = import(pkg, &paths, dest.path(), &CancelAt(Cell::new(at))).unwrap_err();
+            assert!(matches!(e, Error::Cancelled), "{e}");
+            assert_eq!(std::fs::read_dir(dest.path()).unwrap().count(), 0, "cancelled at {at}");
+        }
+    }
+
+    #[test]
+    fn an_import_installs_readable_files() {
+        let pkg = crate::package("fx2lafw-git").unwrap();
+        let (_src, paths) = given();
+        let dest = tempfile::tempdir().unwrap();
+        let installed = import(pkg, &paths, dest.path(), &()).unwrap();
+        assert_eq!(installed.files.len(), pkg.files.len());
+        #[cfg(unix)]
+        for f in &installed.files {
+            use std::os::unix::fs::PermissionsExt;
+            assert_eq!(std::fs::metadata(f).unwrap().permissions().mode() & 0o777, 0o644);
+        }
+    }
 }
