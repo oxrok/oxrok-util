@@ -1,3 +1,2 @@
 build/
-firmware/kingst-la/*.bitstream
-firmware/kingst-la/*.fw
+firmware/target/

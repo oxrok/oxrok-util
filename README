@@ -22,6 +22,18 @@ Requirements
 
  - git
  - Python >= 3.0
+ - Rust (for firmware/)
+
+
+Firmware extraction
+-------------------
+
+firmware/ is oxrok-firmware-fetch, a Rust crate that downloads the vendor
+software for the devices oxrok supports, or takes the user's copy, and
+extracts their firmware on the user's machine. It replaces sigrok-util's
+sigrok-fwextract-* scripts (Kingst, Saleae, Intronix, Hantek, LeCroy,
+Sysclk, DreamSourceLab); see firmware/README.md. The command line front end
+is oxrok's `oxrok firmware list|fetch|import|info`.
 
 
 Building and installing
