@@ -34,6 +34,8 @@ pub struct Input {
     scratch: Option<tempfile::TempDir>,
     /// The first archive that needed a missing tool, for the error.
     needs_tool: Option<String>,
+    /// The first archive that failed to open, and why, for the error.
+    failed: Option<(String, String)>,
 }
 
 impl Input {
@@ -44,6 +46,7 @@ impl Input {
             opened: HashSet::new(),
             scratch: None,
             needs_tool: None,
+            failed: None,
         }
     }
 
@@ -79,10 +82,17 @@ impl Input {
                 break;
             }
         }
-        match self.needs_tool.take() {
-            Some(archive) => Err(Error::NeedTool(archive)),
-            None => Err(Error::NotFound(what.to_owned())),
+        // Why nothing was found, most likely first.
+        if let Some(archive) = self.needs_tool.take() {
+            return Err(Error::NeedTool(archive));
         }
+        if let Some((archive, why)) = self.failed.take() {
+            return Err(Error::format(
+                archive,
+                format!("could not open it ({why}), and {what} is not among the rest"),
+            ));
+        }
+        Err(Error::NotFound(what.to_owned()))
     }
 
     /// The first file [`Input::find`] finds.
@@ -155,7 +165,12 @@ impl Input {
                         self.needs_tool = Some(name);
                     }
                 }
-                Err(e) => log::debug!("Not unpacking {}: {e}", file.display()),
+                Err(e) => {
+                    log::debug!("Not unpacking {}: {e}", file.display());
+                    if kind != Kind::Exe && self.failed.is_none() {
+                        self.failed = Some((file.display().to_string(), e.to_string()));
+                    }
+                }
             }
         }
         Ok(any)
@@ -357,6 +372,15 @@ mod tests {
         let mut input = Input::new([dir.path().to_owned()]);
         let e = input.read_named("top.bit").unwrap_err();
         assert!(matches!(e, Error::NotFound(ref n) if n == "top.bit"), "{e}");
+    }
+
+    #[test]
+    fn names_a_broken_archive() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("broken.zip");
+        std::fs::write(&path, b"PK\x03\x04 not really a zip").unwrap();
+        let e = Input::new([path]).read_named("top.bit").unwrap_err();
+        assert!(matches!(e, Error::Format { ref name, .. } if name.ends_with("broken.zip")), "{e}");
     }
 
     #[test]

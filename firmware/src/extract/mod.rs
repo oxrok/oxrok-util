@@ -82,6 +82,10 @@ pub(crate) fn ihex_record(bytes: &[u8]) -> Result<Record<'_>> {
 /// Hex text to bytes.
 pub(crate) fn unhex(s: &str) -> Result<Vec<u8>> {
     let s = s.trim();
+    // Sliced by byte offset below: a multi-byte character would panic.
+    if !s.is_ascii() {
+        return Err(Error::format("Intel HEX", "not hex"));
+    }
     if !s.len().is_multiple_of(2) {
         return Err(Error::format("Intel HEX", "odd number of hex digits"));
     }
@@ -108,6 +112,12 @@ mod tests {
         let r = ihex_record(&bytes).unwrap();
         assert_eq!((r.kind, r.address, r.data), (0, 0x0030, &[0x02, 0x33, 0x7a][..]));
         assert!(ihex_record(&unhex("0300300002337A1F").unwrap()).is_err());
+    }
+
+    #[test]
+    fn unhex_refuses_non_ascii_without_panicking() {
+        assert!(unhex("aéb").is_err());
+        assert_eq!(unhex(" 0aFF ").unwrap(), vec![0x0a, 0xff]);
     }
 
     #[test]

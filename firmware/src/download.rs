@@ -86,9 +86,9 @@ fn agent() -> Result<ureq::Agent> {
     Ok(ureq::Agent::config_builder()
         .tls_config(tls)
         .timeout_connect(Some(Duration::from_secs(30)))
-        // Per read, not for the whole file: a slow server is fine, a
-        // stalled one is retried.
-        .timeout_recv_body(Some(Duration::from_secs(60)))
+        // Per read, not for the whole file (`timeout_recv_body` is a
+        // total budget): a slow server is fine, a stalled one is retried.
+        .timeout_per_read(Some(Duration::from_secs(60)))
         .user_agent(concat!("oxrok-firmware-fetch/", env!("CARGO_PKG_VERSION")))
         .build()
         .into())

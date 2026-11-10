@@ -51,14 +51,18 @@ fn ccf_from_installer(exe: &[u8]) -> Result<Vec<u8>> {
 }
 
 fn inflate(method: u16, raw: &[u8], size: usize) -> Result<Vec<u8>> {
-    let mut out = Vec::with_capacity(size);
+    // `size` comes from the file: reserve little up front, and read one
+    // byte past it at most, so a lying header fails the size check below
+    // instead of exhausting memory.
+    let mut out = Vec::with_capacity(size.min(1 << 24));
+    let limit = (size as u64).saturating_add(1);
     let r = match method {
         0 => {
             out.extend_from_slice(raw);
             Ok(0)
         }
-        8 => flate2::read::DeflateDecoder::new(raw).read_to_end(&mut out),
-        9 => deflate64::Deflate64Decoder::new(raw).read_to_end(&mut out),
+        8 => flate2::read::DeflateDecoder::new(raw).take(limit).read_to_end(&mut out),
+        9 => deflate64::Deflate64Decoder::new(raw).take(limit).read_to_end(&mut out),
         m => return Err(Error::format("LogicPort installer", format!("compression method {m}"))),
     };
     r.map_err(|e| Error::format("LogicPort installer", e.to_string()))?;

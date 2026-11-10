@@ -21,8 +21,10 @@ impl Progress for Log {
 #[test]
 #[ignore = "downloads about 100 MB from vendor sites"]
 fn every_downloadable_package_fetches_and_extracts() {
+    // A fresh cache unless one is given to keep the downloads.
+    let scratch = tempfile::tempdir().unwrap();
     let cache = std::env::var_os("OXROK_FIRMWARE_FETCH_CACHE")
-        .map_or_else(|| std::env::temp_dir().join("oxrok-firmware-fetch-test"), PathBuf::from);
+        .map_or_else(|| scratch.path().to_owned(), PathBuf::from);
     let opts = Options { cache_dir: cache, progress: &Log };
     let mut failures = Vec::new();
     for pkg in packages().iter().filter(|p| p.downloadable()) {
