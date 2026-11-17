@@ -325,6 +325,36 @@ static PACKAGES: &[Package] = &[
         known: &[],
     },
     Package {
+        id: "oxla-tn20k",
+        title: "oxla logic analyzer gateware for the Sipeed Tang Nano 20K, 0.1.0 (oxrok)",
+        files: &[
+            "oxla-tn20k-la16-rle.fs",
+            "oxla-tn20k-la16.fs",
+            "oxla-tn20k-la14-ddr.fs",
+            "oxla-tn20k-la8-rle.fs",
+            "oxla-tn20k-la8-ddr.fs",
+            "oxla-tn20k-la8-adc.fs",
+        ],
+        covers: &[],
+        downloads: &[Download {
+            name: "oxla-tn20k-0.1.0.tar.gz",
+            urls: &["https://github.com/oxrok/fpga-bitstreams/releases/download/oxla-tn20k-v0.1.0/oxla-tn20k-0.1.0.tar.gz"],
+            sha256: "21d99d01ddbc89cd7cd7e932211fda09e8a6b7f81d3518278f0dea150462ffa8",
+            size: 522_277,
+        }],
+        manual: None,
+        note: Some("oxrok's own gateware, built from github.com/oxrok/fpga-bitstreams; every file passed its self test on a board."),
+        extract: None,
+        known: &[
+            ("oxla-tn20k-la16-rle.fs", Digest::Sha256("56c7618322938f92dd906c478d478cd5a6c1d534e52b8e1b8be46a6de0963296")),
+            ("oxla-tn20k-la16.fs", Digest::Sha256("a93acdf51208e398d754352b7064fcf1357ac94aa175099187d694522e0cb651")),
+            ("oxla-tn20k-la14-ddr.fs", Digest::Sha256("611c8b7c996677a75ae6a80c9ee0730f42020dd741c894a8c77a2422bd456670")),
+            ("oxla-tn20k-la8-rle.fs", Digest::Sha256("15b2ebc13a194ddd55ba3d13b5f3eba08d0ca54b54f3da532de9222be7c91171")),
+            ("oxla-tn20k-la8-ddr.fs", Digest::Sha256("b9765fe997f907f9e08bfdb6ab2309836f5113a3b9b69c225b787cacb4560226")),
+            ("oxla-tn20k-la8-adc.fs", Digest::Sha256("6bcecab44bdbec7d8ced8a8c9287418f3bb36c0509e139a7f49b51dd066aefac")),
+        ],
+    },
+    Package {
         id: "kingst-la",
         title: "Kingst LA series (KingstVIS 3.6.6)",
         files: &[
@@ -576,5 +606,8 @@ mod tests {
             vec!["raw.githubusercontent.com"]
         );
         assert_eq!(package("lecroy-logicstudio").unwrap().hosts(), Vec::<&str>::new());
+        // The redirect of a release download goes on to GitHub's storage.
+        assert_eq!(package("oxla-tn20k").unwrap().hosts(), vec!["github.com"]);
+        assert_eq!(package_for("oxla-tn20k-la8-ddr.fs").unwrap().id, "oxla-tn20k");
     }
 }
