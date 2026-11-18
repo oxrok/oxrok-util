@@ -114,7 +114,7 @@ impl Package {
     /// Every host a [`crate::fetch`] of it may contact, mirrors
     /// included, for telling the user where a download goes. The file of
     /// a GitHub release is not on `github.com`: the download is sent on
-    /// to [`GITHUB_RELEASE_ASSETS`], which is listed with it.
+    /// to `release-assets.githubusercontent.com`, which is listed with it.
     pub fn hosts(&self) -> Vec<&'static str> {
         let mut hosts: Vec<&'static str> = Vec::new();
         let mut add = |host| {
