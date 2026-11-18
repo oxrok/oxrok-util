@@ -326,7 +326,9 @@ static PACKAGES: &[Package] = &[
     },
     Package {
         id: "oxla-tn20k",
-        title: "oxla logic analyzer gateware for the Sipeed Tang Nano 20K, 0.1.0 (oxrok)",
+        title: "oxla logic analyzer gateware for the Sipeed Tang Nano 20K, 0.2.0 (oxrok)",
+        // Each bitstream and the description beside it, which is how
+        // oxrok knows what the bitstream is before it is loaded.
         files: &[
             "oxla-tn20k-la16-rle.fs",
             "oxla-tn20k-la16.fs",
@@ -334,24 +336,36 @@ static PACKAGES: &[Package] = &[
             "oxla-tn20k-la8-rle.fs",
             "oxla-tn20k-la8-ddr.fs",
             "oxla-tn20k-la8-adc.fs",
+            "oxla-tn20k-la16-rle.fs.json",
+            "oxla-tn20k-la16.fs.json",
+            "oxla-tn20k-la14-ddr.fs.json",
+            "oxla-tn20k-la8-rle.fs.json",
+            "oxla-tn20k-la8-ddr.fs.json",
+            "oxla-tn20k-la8-adc.fs.json",
         ],
         covers: &[],
         downloads: &[Download {
-            name: "oxla-tn20k-0.1.0.tar.gz",
-            urls: &["https://github.com/oxrok/fpga-bitstreams/releases/download/oxla-tn20k-v0.1.0/oxla-tn20k-0.1.0.tar.gz"],
-            sha256: "21d99d01ddbc89cd7cd7e932211fda09e8a6b7f81d3518278f0dea150462ffa8",
-            size: 522_277,
+            name: "oxla-tn20k-0.2.0.tar.gz",
+            urls: &["https://github.com/oxrok/fpga-bitstreams/releases/download/oxla-tn20k-v0.2.0/oxla-tn20k-0.2.0.tar.gz"],
+            sha256: "77adbebd1dabd653e0a67c5203ae67562ba0279ea03ac8ae7814b7ab33163104",
+            size: 527_434,
         }],
         manual: None,
         note: Some("oxrok's own gateware, built from github.com/oxrok/fpga-bitstreams; every file passed its self test on a board."),
         extract: None,
         known: &[
-            ("oxla-tn20k-la16-rle.fs", Digest::Sha256("56c7618322938f92dd906c478d478cd5a6c1d534e52b8e1b8be46a6de0963296")),
-            ("oxla-tn20k-la16.fs", Digest::Sha256("a93acdf51208e398d754352b7064fcf1357ac94aa175099187d694522e0cb651")),
-            ("oxla-tn20k-la14-ddr.fs", Digest::Sha256("611c8b7c996677a75ae6a80c9ee0730f42020dd741c894a8c77a2422bd456670")),
-            ("oxla-tn20k-la8-rle.fs", Digest::Sha256("15b2ebc13a194ddd55ba3d13b5f3eba08d0ca54b54f3da532de9222be7c91171")),
-            ("oxla-tn20k-la8-ddr.fs", Digest::Sha256("b9765fe997f907f9e08bfdb6ab2309836f5113a3b9b69c225b787cacb4560226")),
-            ("oxla-tn20k-la8-adc.fs", Digest::Sha256("6bcecab44bdbec7d8ced8a8c9287418f3bb36c0509e139a7f49b51dd066aefac")),
+            ("oxla-tn20k-la16-rle.fs", Digest::Sha256("87e41857c8fe17bb8afa180f1b33283726df8d072b6c7bdaef9a233186ef5823")),
+            ("oxla-tn20k-la16.fs", Digest::Sha256("9c653e392325c244fd4735907edd8df873d87b3a6620aca0b8f9802ca954d8bb")),
+            ("oxla-tn20k-la14-ddr.fs", Digest::Sha256("f5a1c5a26a3e4586e766e0b102858c723242595a7880682dc4280cc884ff1181")),
+            ("oxla-tn20k-la8-rle.fs", Digest::Sha256("a7a387526bc55daca78989de68049ab26618f3ebe349431637617cd74326806d")),
+            ("oxla-tn20k-la8-ddr.fs", Digest::Sha256("ea87003e6827411dd149fce1e73f83fd7a42a59a0145db4df4f70bc556062388")),
+            ("oxla-tn20k-la8-adc.fs", Digest::Sha256("9e1800f9f994c44d06479cfea5b4b501fd7f49ff5830bb34a9f7124c836f604d")),
+            ("oxla-tn20k-la16-rle.fs.json", Digest::Sha256("b7ee1e12122649895fbb269aff53686ee8668c75624db7642a175af7616dd56d")),
+            ("oxla-tn20k-la16.fs.json", Digest::Sha256("67c643327d11316d5a8422924196b49937b5157c7f9cca82b127dbac1478a958")),
+            ("oxla-tn20k-la14-ddr.fs.json", Digest::Sha256("1a9ed2c1e949df5b12f1ca95264234516987fd8edff0f8d39f32d093f2a29492")),
+            ("oxla-tn20k-la8-rle.fs.json", Digest::Sha256("a2f595206ae03f7aab8870105fb3ff2b7506240d6f0769685652b5e580db9e4a")),
+            ("oxla-tn20k-la8-ddr.fs.json", Digest::Sha256("46e84bf825f553b817bb3f7b7d3f3ad72de46b8ce3cbab27fd98067e7f71568a")),
+            ("oxla-tn20k-la8-adc.fs.json", Digest::Sha256("8504ea161a6323521a70dd81d73d148d050a34ea6566f33603d63c9ccef428dc")),
         ],
     },
     Package {
@@ -608,6 +622,6 @@ mod tests {
         assert_eq!(package("lecroy-logicstudio").unwrap().hosts(), Vec::<&str>::new());
         // The redirect of a release download goes on to GitHub's storage.
         assert_eq!(package("oxla-tn20k").unwrap().hosts(), vec!["github.com"]);
-        assert_eq!(package_for("oxla-tn20k-la8-ddr.fs").unwrap().id, "oxla-tn20k");
+        assert_eq!(package_for("oxla-tn20k-la8-ddr.fs.json").unwrap().id, "oxla-tn20k");
     }
 }

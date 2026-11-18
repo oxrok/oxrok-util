@@ -23,7 +23,7 @@ No firmware is in this repository: only names, hashes and code.
 | `fx2lafw` | sigrok's fx2lafw 0.1.7 binary release | none |
 | `fx2lafw-git` | build fx2lafw from git (no release ships these) | none |
 | `asix-sigma`, `sysclk-lwla1034` | oxrok-firmware (redistributable) | LWLA1034 also from the CD's installer |
-| `oxla-tn20k` | a release of oxrok's fpga-bitstreams on GitHub (oxrok's own gateware) | none |
+| `oxla-tn20k` | a release of oxrok's fpga-bitstreams on GitHub (oxrok's own gateware): the bitstreams and the description beside each | none |
 | `kingst-la` | KingstVIS 3.6.6 | Qt resources, by symbol or by structure (stripped, macOS, Windows builds) |
 | `saleae-logic` | Saleae Logic 1.2.10 for Linux | ELF dynamic symbols |
 | `intronix-logicport` | LogicPort installer, build 2371 | Deflate64 entry of the installer |
