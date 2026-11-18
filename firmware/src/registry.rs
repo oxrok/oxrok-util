@@ -73,6 +73,10 @@ impl fmt::Display for Digest {
     }
 }
 
+/// Where GitHub keeps the files of releases, and redirects their
+/// downloads to (seen 2026-11-18).
+const GITHUB_RELEASE_ASSETS: &str = "release-assets.githubusercontent.com";
+
 /// One way to get a set of firmware files.
 #[derive(Debug)]
 pub struct Package {
@@ -108,13 +112,23 @@ impl Package {
     }
 
     /// Every host a [`crate::fetch`] of it may contact, mirrors
-    /// included, for telling the user where a download goes.
+    /// included, for telling the user where a download goes. The file of
+    /// a GitHub release is not on `github.com`: the download is sent on
+    /// to [`GITHUB_RELEASE_ASSETS`], which is listed with it.
     pub fn hosts(&self) -> Vec<&'static str> {
         let mut hosts: Vec<&'static str> = Vec::new();
-        let urls = self.downloads.iter().flat_map(|d| d.urls.iter());
-        for host in urls.filter_map(|u| u.split('/').nth(2)) {
+        let mut add = |host| {
             if !hosts.contains(&host) {
                 hosts.push(host);
+            }
+        };
+        for url in self.downloads.iter().flat_map(|d| d.urls.iter()) {
+            let Some(host) = url.split('/').nth(2) else {
+                continue;
+            };
+            add(host);
+            if host == "github.com" && url.contains("/releases/download/") {
+                add(GITHUB_RELEASE_ASSETS);
             }
         }
         hosts
@@ -620,8 +634,11 @@ mod tests {
             vec!["raw.githubusercontent.com"]
         );
         assert_eq!(package("lecroy-logicstudio").unwrap().hosts(), Vec::<&str>::new());
-        // The redirect of a release download goes on to GitHub's storage.
-        assert_eq!(package("oxla-tn20k").unwrap().hosts(), vec!["github.com"]);
+        // A release download is sent on to GitHub's storage.
+        assert_eq!(
+            package("oxla-tn20k").unwrap().hosts(),
+            vec!["github.com", "release-assets.githubusercontent.com"]
+        );
         assert_eq!(package_for("oxla-tn20k-la8-ddr.fs.json").unwrap().id, "oxla-tn20k");
     }
 }
